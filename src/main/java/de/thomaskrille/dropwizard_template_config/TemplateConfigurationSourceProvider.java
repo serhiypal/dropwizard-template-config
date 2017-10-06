@@ -17,7 +17,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -59,14 +58,12 @@ public class TemplateConfigurationSourceProvider implements ConfigurationSourceP
     }
 
     private Configuration createFreemarkerConfiguration() throws IOException {
-        Configuration freemarkerConfiguration = new Configuration(Configuration.VERSION_2_3_22);
+        Configuration freemarkerConfiguration = new Configuration(Configuration.VERSION_2_3_23);
         freemarkerConfiguration.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
         freemarkerConfiguration.setNumberFormat("computer");
         freemarkerConfiguration.setDefaultEncoding(configuration.charset().name());
-        configuration.resourceIncludePath()
-                     .map(p -> !p.startsWith("/") ? ("/" + p) : p)
-                     .ifPresent(p -> freemarkerConfiguration.setClassForTemplateLoading(
-                             TemplateConfigurationSourceProvider.class, p));
+        configuration.resourceIncludePath().ifPresent(p -> freemarkerConfiguration.setClassForTemplateLoading(
+                             TemplateConfigurationSourceProvider.class, !p.startsWith("/") ? ("/" + p) : p));
 
         if (!configuration.resourceIncludePath().isPresent()) {
             configuration.fileIncludePath().map(File::new).ifPresent(f -> {
@@ -86,9 +83,9 @@ public class TemplateConfigurationSourceProvider implements ConfigurationSourceP
         // Lowest priority is a flat copy of Java system properties, then a flat copy of
         // environment variables, then a flat copy of custom variables, and finally the "env", "sys",
         // and custom namespaces.
-        return new ProviderMap(Stream.concat(Stream.of(systemPropertiesProvider, environmentProvider),
-                                             configuration.customProviders().stream())
-                                     .toArray(TemplateConfigVariablesProvider[]::new));
+        return new DelegateProviderMap(Stream.concat(Stream.of(systemPropertiesProvider, environmentProvider),
+                                                     configuration.customProviders().stream())
+                                             .toArray(TemplateConfigVariablesProvider[]::new));
     }
 
     private Template createFreemarkerTemplate(String path, Configuration freemarkerConfiguration) throws IOException {
@@ -106,7 +103,7 @@ public class TemplateConfigurationSourceProvider implements ConfigurationSourceP
     private void writeConfigFile(byte[] processedTemplateBytes) throws IOException {
         configuration.outputPath().ifPresent(pathString -> {
             try {
-                Path path = Paths.get(pathString);
+                Path path = Paths.get(pathString).toAbsolutePath();
                 Files.createDirectories(path.getParent());
                 Files.write(path,
                             processedTemplateBytes,

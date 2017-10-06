@@ -7,13 +7,13 @@ import java.util.stream.Stream;
 
 import com.google.common.collect.ForwardingMap;
 
-public class ProviderMap extends ForwardingMap<String, Object> {
+public class DelegateProviderMap extends ForwardingMap<String, Object> {
 
     private final Map<String, TemplateConfigVariablesProvider> providers;
 
-    public ProviderMap(TemplateConfigVariablesProvider... providers) {
+    public DelegateProviderMap(TemplateConfigVariablesProvider... providers) {
         this.providers = new LinkedHashMap<>();
-        Stream.of(providers).forEach(p -> ProviderMap.this.providers.put(p.getNamespace(), p));
+        Stream.of(providers).forEach(p -> DelegateProviderMap.this.providers.put(p.getNamespace(), p));
     }
 
     @Override
