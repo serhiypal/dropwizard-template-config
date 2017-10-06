@@ -8,11 +8,11 @@ import static org.hamcrest.CoreMatchers.isA
 
 class SystemPropertiesSpec extends Specification {
 
-    def TestSystemPropertiesProvider systemPropertiesProvider = new TestSystemPropertiesProvider()
+    def TestCustomProvider systemPropertiesProvider = TestCustomProvider.forSys()
 
     def TemplateConfigurationSourceProvider templateConfigurationSourceProvider =
             new TemplateConfigurationSourceProvider(new TestConfigSourceProvider(),
-                    new DefaultEnvironmentProvider(),
+                    Providers.fromEnvironmentProperties(),
                     systemPropertiesProvider,
                     new TemplateConfigBundleConfiguration())
 
@@ -24,7 +24,7 @@ class SystemPropertiesSpec extends Specification {
                             type: http
                             port: ${http_port}'''
 
-        systemPropertiesProvider.put('http_port', '8080')
+        systemPropertiesProvider.putVariable('http_port', '8080')
 
         when:
         def parsedConfig = templateConfigurationSourceProvider.open(config)
@@ -66,7 +66,7 @@ class SystemPropertiesSpec extends Specification {
         templateConfigurationSourceProvider.open(config)
 
         then:
-        def exception = thrown(RuntimeException)
+        def exception = thrown(IllegalStateException)
         def exceptionsCause = exception.cause
         exceptionsCause isA(freemarker.core.InvalidReferenceException)
     }
@@ -79,7 +79,7 @@ class SystemPropertiesSpec extends Specification {
                             type: http
                             port: ${sys.http_port}'''
 
-        systemPropertiesProvider.put('http_port', '8080')
+        systemPropertiesProvider.putVariable('http_port', '8080')
 
         when:
         def parsedConfig = templateConfigurationSourceProvider.open(config)
@@ -99,7 +99,7 @@ class SystemPropertiesSpec extends Specification {
                             type: http
                             port: ${sys['my_app.http.port']}'''
 
-        systemPropertiesProvider.put('my_app.http.port', '8080')
+        systemPropertiesProvider.putVariable('my_app.http.port', '8080')
 
         when:
         def parsedConfig = templateConfigurationSourceProvider.open(config)
@@ -119,7 +119,7 @@ class SystemPropertiesSpec extends Specification {
                             type: http
                             port: ${http\\-port}'''
 
-        systemPropertiesProvider.put('http-port', '8080')
+        systemPropertiesProvider.putVariable('http-port', '8080')
 
         when:
         def parsedConfig = templateConfigurationSourceProvider.open(config)

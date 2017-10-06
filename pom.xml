@@ -54,7 +54,7 @@
         <!-- We compile with the minimum supported Dropwizard version, but the
              package is expected to work with newer versions. See the README
              for details of tested versions. -->
-        <dropwizard.version>0.7.1</dropwizard.version>
+        <dropwizard.version>1.0.0</dropwizard.version>
     </properties>
 
     <dependencies>
@@ -110,8 +110,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.2</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
 

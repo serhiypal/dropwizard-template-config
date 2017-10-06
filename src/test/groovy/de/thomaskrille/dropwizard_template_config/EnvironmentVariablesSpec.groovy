@@ -8,12 +8,12 @@ import static org.hamcrest.CoreMatchers.isA
 
 class EnvironmentVariablesSpec extends Specification {
 
-    def TestEnvironmentProvider environmentProvider = new TestEnvironmentProvider()
+    def TestCustomProvider environmentProvider = TestCustomProvider.forEnv()
 
     def TemplateConfigurationSourceProvider templateConfigurationSourceProvider =
             new TemplateConfigurationSourceProvider(new TestConfigSourceProvider(),
                     environmentProvider,
-                    new DefaultSystemPropertiesProvider(),
+                    Providers.fromSystemProperties(),
                     new TemplateConfigBundleConfiguration())
 
     def 'replacing an environment variable works'() throws Exception {
@@ -24,7 +24,7 @@ class EnvironmentVariablesSpec extends Specification {
                             type: http
                             port: ${PORT}'''
 
-        environmentProvider.put('PORT', '8080')
+        environmentProvider.putVariable('PORT', '8080')
 
         when:
         def parsedConfig = templateConfigurationSourceProvider.open(config)
@@ -66,7 +66,7 @@ class EnvironmentVariablesSpec extends Specification {
         templateConfigurationSourceProvider.open(config)
 
         then:
-        def exception = thrown(RuntimeException)
+        def exception = thrown(IllegalStateException)
         def exceptionsCause = exception.cause
         exceptionsCause isA(freemarker.core.InvalidReferenceException)
     }
@@ -79,7 +79,7 @@ class EnvironmentVariablesSpec extends Specification {
                             type: http
                             port: ${env.PORT}'''
 
-        environmentProvider.put('PORT', '8080')
+        environmentProvider.putVariable('PORT', '8080')
 
         when:
         def parsedConfig = templateConfigurationSourceProvider.open(config)

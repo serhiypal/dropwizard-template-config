@@ -7,13 +7,13 @@ import spock.lang.Specification
 class IncludeSpec extends Specification {
 
     @Shared
-    def TestEnvironmentProvider environmentProvider = new TestEnvironmentProvider()
+    def TestCustomProvider environmentProvider = TestCustomProvider.forEnv()
 
     @Shared
     def TemplateConfigurationSourceProvider resourceIncludeProvider = new TemplateConfigurationSourceProvider(
             new TestConfigSourceProvider(),
             environmentProvider,
-            new DefaultSystemPropertiesProvider(),
+            Providers.fromSystemProperties(),
             new TemplateConfigBundleConfiguration()
                     .resourceIncludePath('/config-snippets')
     )
@@ -22,7 +22,7 @@ class IncludeSpec extends Specification {
     def TemplateConfigurationSourceProvider fileIncludeProvider = new TemplateConfigurationSourceProvider(
             new TestConfigSourceProvider(),
             environmentProvider,
-            new DefaultSystemPropertiesProvider(),
+            Providers.fromSystemProperties(),
             new TemplateConfigBundleConfiguration()
                     .fileIncludePath('src/test/resources/config-snippets/')
     )
@@ -72,10 +72,10 @@ class IncludeSpec extends Specification {
                 <#include "database-with-templating.yaml">
                 '''.stripIndent()
 
-        environmentProvider.put('DB_USER', 'my-app')
-        environmentProvider.put('DB_PASSWORD', 'secret')
-        environmentProvider.put('DB_HOST', 'localhost')
-        environmentProvider.put('DB_PORT', '5432')
+        environmentProvider.putVariable('DB_USER', 'my-app')
+        environmentProvider.putVariable('DB_PASSWORD', 'secret')
+        environmentProvider.putVariable('DB_HOST', 'localhost')
+        environmentProvider.putVariable('DB_PORT', '5432')
 
         expect:
         def parsedConfig = provider.open(config)
@@ -97,8 +97,8 @@ class IncludeSpec extends Specification {
         def relativeIncludePath = 'config-snippets'
         def TemplateConfigurationSourceProvider provider = new TemplateConfigurationSourceProvider(
                 new TestConfigSourceProvider(),
-                new DefaultEnvironmentProvider(),
-                new DefaultSystemPropertiesProvider(),
+                Providers.fromEnvironmentProperties(),
+                Providers.fromSystemProperties(),
                 new TemplateConfigBundleConfiguration()
                         .resourceIncludePath(relativeIncludePath)
         )

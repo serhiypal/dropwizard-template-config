@@ -1,8 +1,5 @@
 package de.thomaskrille.dropwizard_template_config;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Throwables;
-import com.google.common.io.Files;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -16,21 +13,25 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
+import java.util.stream.Stream;
 
 public class TemplateConfigurationSourceProvider implements ConfigurationSourceProvider {
 
     private final ConfigurationSourceProvider parentProvider;
-    private final SystemPropertiesProvider systemPropertiesProvider;
-    private final EnvironmentProvider environmentProvider;
+    private final TemplateConfigVariablesProvider systemPropertiesProvider;
+    private final TemplateConfigVariablesProvider environmentProvider;
     private final TemplateConfigBundleConfiguration configuration;
 
     TemplateConfigurationSourceProvider(
             final ConfigurationSourceProvider parentProvider,
-            final EnvironmentProvider environmentProvider,
-            final SystemPropertiesProvider systemPropertiesProvider,
+            final TemplateConfigVariablesProvider environmentProvider,
+            final TemplateConfigVariablesProvider systemPropertiesProvider,
             final TemplateConfigBundleConfiguration configuration
     ) {
         this.parentProvider = parentProvider;
@@ -44,7 +45,7 @@ public class TemplateConfigurationSourceProvider implements ConfigurationSourceP
         try {
             return createConfigurationSourceStream(path);
         } catch (TemplateException e) {
-            throw Throwables.propagate(e);
+            throw new IllegalStateException("Could not render template.", e);
         }
     }
 
@@ -62,17 +63,19 @@ public class TemplateConfigurationSourceProvider implements ConfigurationSourceP
         freemarkerConfiguration.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
         freemarkerConfiguration.setNumberFormat("computer");
         freemarkerConfiguration.setDefaultEncoding(configuration.charset().name());
-        Optional<String> resourceIncludePath = configuration.resourceIncludePath();
-        Optional<String> fileIncludePath = configuration.fileIncludePath();
-        if (resourceIncludePath.isPresent()) {
-            String includePath = resourceIncludePath.get();
-            if (!includePath.startsWith("/")) {
-                includePath = "/" + includePath;
-            }
-            freemarkerConfiguration.setClassForTemplateLoading(getClass(), includePath);
-        } else if (fileIncludePath.isPresent()) {
-            File includeDir = new File(fileIncludePath.get());
-            freemarkerConfiguration.setDirectoryForTemplateLoading(includeDir);
+        configuration.resourceIncludePath()
+                     .map(p -> !p.startsWith("/") ? ("/" + p) : p)
+                     .ifPresent(p -> freemarkerConfiguration.setClassForTemplateLoading(
+                             TemplateConfigurationSourceProvider.class, p));
+
+        if (!configuration.resourceIncludePath().isPresent()) {
+            configuration.fileIncludePath().map(File::new).ifPresent(f -> {
+                try {
+                    freemarkerConfiguration.setDirectoryForTemplateLoading(f);
+                } catch (IOException e) {
+                    throw new IllegalStateException("Could not set directory for template loading.", e);
+                }
+            });
         }
         return freemarkerConfiguration;
     }
@@ -84,19 +87,13 @@ public class TemplateConfigurationSourceProvider implements ConfigurationSourceP
         // Lowest priority is a flat copy of Java system properties, then a flat copy of
         // environment variables, then a flat copy of custom variables, and finally the "env", "sys",
         // and custom namespaces.
-        Properties systemProperties = systemPropertiesProvider.getSystemProperties();
-        for (String propertyName : systemProperties.stringPropertyNames()) {
-            dataModel.put(propertyName, systemProperties.getProperty(propertyName));
-        }
-        dataModel.putAll(environmentProvider.getEnvironment());
-        for (TemplateConfigVariablesProvider customProvider : configuration.customProviders()) {
-            dataModel.putAll(customProvider.getVariables());
-        }
-        dataModel.put("env", environmentProvider.getEnvironment());
-        dataModel.put("sys", systemPropertiesProvider.getSystemProperties());
-        for (TemplateConfigVariablesProvider customProvider : configuration.customProviders()) {
-            dataModel.put(customProvider.getNamespace(), customProvider.getVariables());
-        }
+        Stream.concat(Stream.of(systemPropertiesProvider, environmentProvider), configuration.customProviders().stream())
+              .map(TemplateConfigVariablesProvider::getVariables)
+              .forEach(dataModel::putAll);
+
+        Stream.concat(Stream.of(systemPropertiesProvider, environmentProvider), configuration.customProviders().stream())
+              .forEach(provider -> dataModel.put(provider.getNamespace(), provider.getVariables()));
+
         return dataModel;
     }
 
@@ -113,11 +110,18 @@ public class TemplateConfigurationSourceProvider implements ConfigurationSourceP
     }
 
     private void writeConfigFile(byte[] processedTemplateBytes) throws IOException {
-        Optional<String> outputPath = configuration.outputPath();
-        if (outputPath.isPresent()) {
-            File outputFile = new File(outputPath.get());
-            Files.createParentDirs(outputFile);
-            Files.write(processedTemplateBytes, outputFile);
-        }
+        configuration.outputPath().ifPresent(pathString -> {
+            try {
+                Path path = Paths.get(pathString);
+                Files.createDirectories(path.getParent());
+                Files.write(path,
+                            processedTemplateBytes,
+                            StandardOpenOption.WRITE,
+                            StandardOpenOption.CREATE,
+                            StandardOpenOption.TRUNCATE_EXISTING);
+            } catch (IOException e) {
+                throw new IllegalStateException("Could not write configuration file.", e);
+            }
+        });
     }
 }
