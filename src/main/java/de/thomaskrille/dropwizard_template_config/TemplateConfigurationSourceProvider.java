@@ -81,20 +81,14 @@ public class TemplateConfigurationSourceProvider implements ConfigurationSourceP
     }
 
     private Map<String, Object> createDataModel() {
-        Map<String, Object> dataModel = new HashMap<>();
         // We populate the dataModel with lowest-priority items first, so that higher-priority
         // items can overwrite existing entries.
         // Lowest priority is a flat copy of Java system properties, then a flat copy of
         // environment variables, then a flat copy of custom variables, and finally the "env", "sys",
         // and custom namespaces.
-        Stream.concat(Stream.of(systemPropertiesProvider, environmentProvider), configuration.customProviders().stream())
-              .map(TemplateConfigVariablesProvider::getVariables)
-              .forEach(dataModel::putAll);
-
-        Stream.concat(Stream.of(systemPropertiesProvider, environmentProvider), configuration.customProviders().stream())
-              .forEach(provider -> dataModel.put(provider.getNamespace(), provider.getVariables()));
-
-        return dataModel;
+        return new ProviderMap(Stream.concat(Stream.of(systemPropertiesProvider, environmentProvider),
+                                             configuration.customProviders().stream())
+                                     .toArray(TemplateConfigVariablesProvider[]::new));
     }
 
     private Template createFreemarkerTemplate(String path, Configuration freemarkerConfiguration) throws IOException {
