@@ -23,20 +23,23 @@ import java.util.stream.Stream;
 public class TemplateConfigurationSourceProvider implements ConfigurationSourceProvider {
 
     private final ConfigurationSourceProvider parentProvider;
-    private final TemplateConfigVariablesProvider systemPropertiesProvider;
-    private final TemplateConfigVariablesProvider environmentProvider;
+    private final TemplateConfigVariablesProvider[] providers;
     private final TemplateConfigBundleConfiguration configuration;
 
     TemplateConfigurationSourceProvider(
             final ConfigurationSourceProvider parentProvider,
-            final TemplateConfigVariablesProvider environmentProvider,
-            final TemplateConfigVariablesProvider systemPropertiesProvider,
+            final TemplateConfigBundleConfiguration configuration,
+            final TemplateConfigVariablesProvider... providers) {
+        this.parentProvider = parentProvider;
+        this.providers = providers;
+        this.configuration = configuration;
+    }
+
+    TemplateConfigurationSourceProvider(
+            final ConfigurationSourceProvider parentProvider,
             final TemplateConfigBundleConfiguration configuration
     ) {
-        this.parentProvider = parentProvider;
-        this.environmentProvider = environmentProvider;
-        this.systemPropertiesProvider = systemPropertiesProvider;
-        this.configuration = configuration;
+        this(parentProvider, configuration, Providers.fromEnvironmentProperties(), Providers.fromSystemProperties());
     }
 
     @Override
@@ -83,7 +86,7 @@ public class TemplateConfigurationSourceProvider implements ConfigurationSourceP
         // Lowest priority is a flat copy of Java system properties, then a flat copy of
         // environment variables, then a flat copy of custom variables, and finally the "env", "sys",
         // and custom namespaces.
-        return new DelegateProviderMap(Stream.concat(Stream.of(systemPropertiesProvider, environmentProvider),
+        return new DelegateProviderMap(Stream.concat(Stream.of(providers),
                                                      configuration.customProviders().stream())
                                              .toArray(TemplateConfigVariablesProvider[]::new));
     }

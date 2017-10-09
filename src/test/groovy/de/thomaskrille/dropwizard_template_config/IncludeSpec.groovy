@@ -12,19 +12,17 @@ class IncludeSpec extends Specification {
     @Shared
     def TemplateConfigurationSourceProvider resourceIncludeProvider = new TemplateConfigurationSourceProvider(
             new TestConfigSourceProvider(),
+            new TemplateConfigBundleConfiguration().resourceIncludePath('/config-snippets'),
             environmentProvider,
-            Providers.fromSystemProperties(),
-            new TemplateConfigBundleConfiguration()
-                    .resourceIncludePath('/config-snippets')
+            Providers.fromSystemProperties()
     )
 
     @Shared
     def TemplateConfigurationSourceProvider fileIncludeProvider = new TemplateConfigurationSourceProvider(
             new TestConfigSourceProvider(),
+            new TemplateConfigBundleConfiguration().fileIncludePath('src/test/resources/config-snippets/'),
             environmentProvider,
-            Providers.fromSystemProperties(),
-            new TemplateConfigBundleConfiguration()
-                    .fileIncludePath('src/test/resources/config-snippets/')
+            Providers.fromSystemProperties()
     )
 
     def 'config snippets can be included from the classpath and filesystem'() {
