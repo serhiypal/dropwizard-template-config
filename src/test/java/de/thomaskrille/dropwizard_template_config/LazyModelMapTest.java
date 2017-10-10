@@ -121,8 +121,6 @@ public class LazyModelMapTest {
     public void put() {
         Map<String, Object> map = new LazyModelMap(provider1, provider2);
         map.put("test_key", "test_value");
-        Map<String, String> vars1 = (Map<String, String>) map.get(PROVIDER_1_KEY);
-        vars1.put("test_key", "test_value");
 
         assertThat(map.get(PROVIDER_2_KEY)).isEqualTo(PROVIDER_2_VALUE);
         assertThat(map.get(PROVIDER_2_KEY)).isEqualTo(PROVIDER_2_VALUE);
