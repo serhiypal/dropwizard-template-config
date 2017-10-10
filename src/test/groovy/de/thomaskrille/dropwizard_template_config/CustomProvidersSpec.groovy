@@ -11,15 +11,13 @@ class CustomProvidersSpec extends Specification {
     def TestCustomProvider systemPropertiesProvider = TestCustomProvider.forSys()
     def TestCustomProvider customProviderA = new TestCustomProvider("providerA")
     def TestCustomProvider customProviderB = new TestCustomProvider("providerB")
-    def TemplateConfigBundleConfiguration templateConfigBundleConfiguration = new TemplateConfigBundleConfiguration()
+    def TemplateConfigBundleConfiguration templateConfigBundleConfiguration =
+            new TemplateConfigBundleConfiguration(systemPropertiesProvider, environmentProvider)
             .addCustomProvider(customProviderA)
             .addCustomProvider(customProviderB)
 
     def TemplateConfigurationSourceProvider templateConfigurationSourceProvider =
-            new TemplateConfigurationSourceProvider(new TestConfigSourceProvider(),
-                    templateConfigBundleConfiguration,
-                    systemPropertiesProvider,
-                    environmentProvider)
+            new TemplateConfigurationSourceProvider(new TestConfigSourceProvider(), templateConfigBundleConfiguration)
 
     def 'replacing custom variables inline works'() {
         given:

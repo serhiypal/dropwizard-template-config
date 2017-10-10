@@ -13,7 +13,7 @@ class BundleCreationSpec extends Specification {
         bundle.configuration.charset == Charsets.UTF_8
         bundle.configuration.resourceIncludePath == null
         bundle.configuration.fileIncludePath == null
-        bundle.configuration.customProviders.size() == 0
+        bundle.configuration.customProviders.size() == 2
     }
 
     def 'a specific configuration can be applied'() {
@@ -41,6 +41,6 @@ class BundleCreationSpec extends Specification {
 
         then:
         bundle.configuration.customProviders.containsAll([providerA, providerB])
-        bundle.configuration.customProviders.size() == 2
+        bundle.configuration.customProviders.size() == 4
     }
 }

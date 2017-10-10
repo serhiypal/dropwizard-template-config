@@ -15,9 +15,9 @@ class OutputPathSpec extends Specification {
 
     def TemplateConfigurationSourceProvider provider = new TemplateConfigurationSourceProvider(
             new TestConfigSourceProvider(),
-            new TemplateConfigBundleConfiguration().outputPath(outputPath),
-            Providers.fromSystemProperties(),
-            environmentProvider
+            new TemplateConfigBundleConfiguration(Providers.fromSystemProperties(), environmentProvider)
+                    .outputPath(outputPath),
+
     )
 
     def 'rendered output is written to configured outputPath'() {

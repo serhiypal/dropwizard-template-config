@@ -12,9 +12,7 @@ class SystemPropertiesSpec extends Specification {
 
     def TemplateConfigurationSourceProvider templateConfigurationSourceProvider =
             new TemplateConfigurationSourceProvider(new TestConfigSourceProvider(),
-                    new TemplateConfigBundleConfiguration(),
-                    systemPropertiesProvider,
-                    Providers.fromEnvironmentProperties())
+                    new TemplateConfigBundleConfiguration(systemPropertiesProvider, Providers.fromEnvironmentProperties()))
 
     def 'replacing a system property works'() throws Exception {
         given:

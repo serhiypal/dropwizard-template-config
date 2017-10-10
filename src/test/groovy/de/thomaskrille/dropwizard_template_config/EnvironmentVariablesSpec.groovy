@@ -12,9 +12,7 @@ class EnvironmentVariablesSpec extends Specification {
 
     def TemplateConfigurationSourceProvider templateConfigurationSourceProvider =
             new TemplateConfigurationSourceProvider(new TestConfigSourceProvider(),
-                    new TemplateConfigBundleConfiguration(),
-                    Providers.fromSystemProperties(),
-                    environmentProvider)
+                    new TemplateConfigBundleConfiguration(Providers.fromSystemProperties(), environmentProvider))
 
     def 'replacing an environment variable works'() throws Exception {
         given:

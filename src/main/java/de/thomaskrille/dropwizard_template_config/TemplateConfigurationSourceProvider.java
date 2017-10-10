@@ -18,28 +18,17 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Map;
-import java.util.stream.Stream;
 
 public class TemplateConfigurationSourceProvider implements ConfigurationSourceProvider {
 
     private final ConfigurationSourceProvider parentProvider;
-    private final TemplateConfigVariablesProvider[] providers;
     private final TemplateConfigBundleConfiguration configuration;
 
     TemplateConfigurationSourceProvider(
             final ConfigurationSourceProvider parentProvider,
-            final TemplateConfigBundleConfiguration configuration,
-            final TemplateConfigVariablesProvider... providers) {
+            final TemplateConfigBundleConfiguration configuration) {
         this.parentProvider = parentProvider;
-        this.providers = providers;
         this.configuration = configuration;
-    }
-
-    TemplateConfigurationSourceProvider(
-            final ConfigurationSourceProvider parentProvider,
-            final TemplateConfigBundleConfiguration configuration
-    ) {
-        this(parentProvider, configuration, Providers.fromEnvironmentProperties(), Providers.fromSystemProperties());
     }
 
     @Override
@@ -86,9 +75,7 @@ public class TemplateConfigurationSourceProvider implements ConfigurationSourceP
         // Lowest priority is a flat copy of Java system properties, then a flat copy of
         // environment variables, then a flat copy of custom variables, and finally the "env", "sys",
         // and custom namespaces.
-        return new DelegateProviderMap(Stream.concat(Stream.of(providers),
-                                                     configuration.customProviders().stream())
-                                             .toArray(TemplateConfigVariablesProvider[]::new));
+        return new DelegateProviderMap(configuration.customProviders().toArray(new TemplateConfigVariablesProvider[0]));
     }
 
     private Template createFreemarkerTemplate(String path, Configuration freemarkerConfiguration) throws IOException {

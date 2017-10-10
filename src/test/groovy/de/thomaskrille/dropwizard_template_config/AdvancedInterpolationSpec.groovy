@@ -12,9 +12,7 @@ class AdvancedInterpolationSpec extends Specification {
 
     def TemplateConfigurationSourceProvider templateConfigurationSourceProvider =
             new TemplateConfigurationSourceProvider(new TestConfigSourceProvider(),
-                    new TemplateConfigBundleConfiguration(),
-                    systemPropertiesProvider,
-                    environmentProvider)
+                    new TemplateConfigBundleConfiguration(systemPropertiesProvider, environmentProvider))
 
     def 'replacing an environment variable inline works'() {
         given:

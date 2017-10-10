@@ -17,9 +17,13 @@ public class TemplateConfigBundleConfiguration {
     private String outputPath;
     private Set<TemplateConfigVariablesProvider> customProviders = new LinkedHashSet<>();
 
+    TemplateConfigBundleConfiguration(TemplateConfigVariablesProvider sys, TemplateConfigVariablesProvider env) {
+        customProviders.add(sys);
+        customProviders.add(env);
+    }
+
     public TemplateConfigBundleConfiguration() {
-        customProviders.add(Providers.fromSystemProperties());
-        customProviders.add(Providers.fromEnvironmentProperties());
+        this(Providers.fromSystemProperties(), Providers.fromEnvironmentProperties());
     }
 
     /**
