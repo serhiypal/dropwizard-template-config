@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,12 +44,10 @@ class LazyModelMap extends ForwardingMap<String, Object> {
      */
     @Override
     public Object get(@Nullable Object key) {
-        final Object value = providers.get(key);
-        if (value != null) {
-            return ((TemplateConfigVariablesProvider) value).getVariables();
-        } else {
+        if (delegate != null || !providers.containsKey(key)) {
             return super.get(key);
         }
+        return Optional.ofNullable(providers.get(key)).map(TemplateConfigVariablesProvider::getVariables).orElse(null);
     }
 
     /**

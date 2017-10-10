@@ -121,11 +121,27 @@ public class LazyModelMapTest {
     public void put() {
         Map<String, Object> map = new LazyModelMap(provider1, provider2);
         map.put("test_key", "test_value");
+        Map<String, String> vars1 = (Map<String, String>) map.get(PROVIDER_1_KEY);
+        vars1.put("test_key", "test_value");
 
         assertThat(map.get(PROVIDER_2_KEY)).isEqualTo(PROVIDER_2_VALUE);
         assertThat(map.get(PROVIDER_2_KEY)).isEqualTo(PROVIDER_2_VALUE);
         assertThat(map.get(PROVIDER_1_KEY)).isEqualTo(PROVIDER_1_VALUE);
         assertThat(map.get(PROVIDER_1_KEY)).isEqualTo(PROVIDER_1_VALUE);
+
+        verify(provider1, times(2)).getNamespace();
+        verify(provider1, times(2)).getVariables();
+        verify(provider2, times(2)).getNamespace();
+        verify(provider2, times(2)).getVariables();
+    }
+
+    @Test
+    public void putDelegate() {
+        Map<String, Object> map = new LazyModelMap(provider1, provider2);
+        map.put("test_key1", "test_value1");
+        Map<String, String> vars1 = (Map<String, String>) map.get(PROVIDER_1);
+        vars1.put("test_key2", "test_value2");
+        assertThat(((Map<String, String>) map.get(PROVIDER_1)).get("test_key2")).isEqualTo("test_value2");
 
         verify(provider1, times(2)).getNamespace();
         verify(provider1, times(2)).getVariables();
