@@ -17,6 +17,11 @@ public class TemplateConfigBundleConfiguration {
     private String outputPath;
     private Set<TemplateConfigVariablesProvider> customProviders = new LinkedHashSet<>();
 
+    public TemplateConfigBundleConfiguration() {
+        customProviders.add(Providers.fromSystemProperties());
+        customProviders.add(Providers.fromEnvironmentProperties());
+    }
+
     /**
      * Get the configured charset (Default: UTF-8)
      */

@@ -29,10 +29,11 @@ class DelegateProviderMap extends ForwardingMap<String, Object> {
     @Override
     public Object get(@Nullable Object key) {
         Object value = providers.get(key);
-        if (value == null) {
-            value = delegate().get(key);
+        if (value != null) {
+            return ((TemplateConfigVariablesProvider) value).getVariables();
+        } else {
+            return super.get(key);
         }
-        return value;
     }
 
     @Override
@@ -49,8 +50,8 @@ class DelegateProviderMap extends ForwardingMap<String, Object> {
     protected Map<String, Object> delegate() {
         if (delegate == null) {
             Map<String, Object> values = new HashMap<>();
-            providers.values().forEach(p -> values.put(p.getNamespace(), p.getVariables()));
             providers.values().stream().map(TemplateConfigVariablesProvider::getVariables).forEach(values::putAll);
+            providers.values().forEach(p -> values.put(p.getNamespace(), p.getVariables()));
             delegate = values;
         }
         return delegate;

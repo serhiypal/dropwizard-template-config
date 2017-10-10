@@ -58,7 +58,7 @@ public class DelegateProviderMapTest {
     }
 
     @Test
-    public void containsKeyMain() {
+    public void containsKeyProvider1() {
         assertThat(new DelegateProviderMap(provider1, provider2).containsKey(PROVIDER_1)).isEqualTo(true);
 
         verify(provider1).getNamespace();
@@ -66,7 +66,7 @@ public class DelegateProviderMapTest {
     }
 
     @Test
-    public void containsKeyLazy() {
+    public void containsKeyProvider2() {
         assertThat(new DelegateProviderMap(provider1, provider2).containsKey(PROVIDER_2)).isEqualTo(true);
 
         verify(provider1).getNamespace();
@@ -74,19 +74,21 @@ public class DelegateProviderMapTest {
     }
 
     @Test
-    public void getMain() {
-        assertThat(new DelegateProviderMap(provider1, provider2).get(PROVIDER_1)).isSameAs(provider1);
+    public void getProvider1() {
+        assertThat(new DelegateProviderMap(provider1, provider2).get(PROVIDER_1)).isSameAs(provider1Map);
 
         verify(provider1).getNamespace();
+        verify(provider1).getVariables();
         verify(provider2).getNamespace();
     }
 
     @Test
-    public void getLazy() {
-        assertThat(new DelegateProviderMap(provider1, provider2).get(PROVIDER_2)).isSameAs(provider2);
+    public void getProvider2() {
+        assertThat(new DelegateProviderMap(provider1, provider2).get(PROVIDER_2)).isSameAs(provider2Map);
 
         verify(provider1).getNamespace();
         verify(provider2).getNamespace();
+        verify(provider2).getVariables();
     }
 
     @Test

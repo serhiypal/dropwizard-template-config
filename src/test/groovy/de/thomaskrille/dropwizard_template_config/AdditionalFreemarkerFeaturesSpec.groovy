@@ -13,8 +13,8 @@ class AdditionalFreemarkerFeaturesSpec extends Specification {
     def TemplateConfigurationSourceProvider templateConfigurationSourceProvider =
             new TemplateConfigurationSourceProvider(new TestConfigSourceProvider(),
                     new TemplateConfigBundleConfiguration(),
-                    environmentProvider,
-                    Providers.fromSystemProperties())
+                    Providers.fromSystemProperties(),
+                    environmentProvider)
 
     def 'conditionally enable https - on'() {
         given:

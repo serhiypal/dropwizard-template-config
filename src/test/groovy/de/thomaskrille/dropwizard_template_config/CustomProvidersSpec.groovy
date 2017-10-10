@@ -18,8 +18,8 @@ class CustomProvidersSpec extends Specification {
     def TemplateConfigurationSourceProvider templateConfigurationSourceProvider =
             new TemplateConfigurationSourceProvider(new TestConfigSourceProvider(),
                     templateConfigBundleConfiguration,
-                    environmentProvider,
-                    systemPropertiesProvider)
+                    systemPropertiesProvider,
+                    environmentProvider)
 
     def 'replacing custom variables inline works'() {
         given:
