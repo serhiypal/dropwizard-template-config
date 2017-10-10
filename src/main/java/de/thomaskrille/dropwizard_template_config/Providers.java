@@ -1,5 +1,7 @@
 package de.thomaskrille.dropwizard_template_config;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
@@ -61,6 +63,22 @@ public class Providers {
                                          .stringPropertyNames()
                                          .stream()
                                          .collect(Collectors.toMap(Function.identity(), System::getProperty)));
+    }
+
+    /**
+     * Converts properties into a {@link TemplateConfigVariablesProvider} with given namespace
+     * @param namespace to use for provider
+     * @param propertiesURL URL to properties to wrap into provider
+     * @return provider with given namespace and map
+     */
+    public static TemplateConfigVariablesProvider fromProperties(String namespace, URL propertiesURL) {
+        try {
+            Properties properties = new Properties();
+            properties.load(Objects.requireNonNull(propertiesURL).openStream());
+            return fromProperties(namespace, properties);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Could not read properties from URL: " + propertiesURL, e);
+        }
     }
 
     /**
