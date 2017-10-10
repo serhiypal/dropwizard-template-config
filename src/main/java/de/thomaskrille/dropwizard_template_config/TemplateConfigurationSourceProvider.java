@@ -18,6 +18,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Map;
+import java.util.Objects;
 
 public class TemplateConfigurationSourceProvider implements ConfigurationSourceProvider {
 
@@ -42,9 +43,9 @@ public class TemplateConfigurationSourceProvider implements ConfigurationSourceP
 
     private InputStream createConfigurationSourceStream(String path) throws IOException, TemplateException {
         Configuration freemarkerConfiguration = createFreemarkerConfiguration();
-        Map<String, Object> dataModel = createDataModel();
         Template configTemplate = createFreemarkerTemplate(path, freemarkerConfiguration);
-        byte[] processedConfigTemplate = processTemplate(dataModel, configTemplate);
+        byte[] processedConfigTemplate =
+                processTemplate(Objects.requireNonNull(configuration.dataModelFactory().createDataModel()), configTemplate);
         writeConfigFile(processedConfigTemplate);
         return new ByteArrayInputStream(processedConfigTemplate);
     }
@@ -69,22 +70,13 @@ public class TemplateConfigurationSourceProvider implements ConfigurationSourceP
         return freemarkerConfiguration;
     }
 
-    private Map<String, Object> createDataModel() {
-        // We populate the dataModel with lowest-priority items first, so that higher-priority
-        // items can overwrite existing entries.
-        // Lowest priority is a flat copy of Java system properties, then a flat copy of
-        // environment variables, then a flat copy of custom variables, and finally the "env", "sys",
-        // and custom namespaces.
-        return new DelegateProviderMap(configuration.customProviders().toArray(new TemplateConfigVariablesProvider[0]));
-    }
-
     private Template createFreemarkerTemplate(String path, Configuration freemarkerConfiguration) throws IOException {
         InputStream configurationSource = parentProvider.open(path);
         InputStreamReader configurationSourceReader = new InputStreamReader(configurationSource, configuration.charset());
         return new Template("config", configurationSourceReader, freemarkerConfiguration);
     }
 
-    private byte[] processTemplate(Map<String, Object> dataModel, Template template) throws TemplateException, IOException {
+    private byte[] processTemplate(Object dataModel, Template template) throws TemplateException, IOException {
         ByteArrayOutputStream processedTemplateStream = new ByteArrayOutputStream();
         template.process(dataModel, new OutputStreamWriter(processedTemplateStream, configuration.charset()));
         return processedTemplateStream.toByteArray();

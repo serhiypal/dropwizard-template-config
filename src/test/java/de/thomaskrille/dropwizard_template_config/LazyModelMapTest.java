@@ -17,7 +17,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class DelegateProviderMapTest {
+public class LazyModelMapTest {
 
     private static final String PROVIDER_1 = "provider_1";
 
@@ -59,7 +59,7 @@ public class DelegateProviderMapTest {
 
     @Test
     public void containsKeyProvider1() {
-        assertThat(new DelegateProviderMap(provider1, provider2).containsKey(PROVIDER_1)).isEqualTo(true);
+        assertThat(new LazyModelMap(provider1, provider2).containsKey(PROVIDER_1)).isEqualTo(true);
 
         verify(provider1).getNamespace();
         verify(provider2).getNamespace();
@@ -67,7 +67,7 @@ public class DelegateProviderMapTest {
 
     @Test
     public void containsKeyProvider2() {
-        assertThat(new DelegateProviderMap(provider1, provider2).containsKey(PROVIDER_2)).isEqualTo(true);
+        assertThat(new LazyModelMap(provider1, provider2).containsKey(PROVIDER_2)).isEqualTo(true);
 
         verify(provider1).getNamespace();
         verify(provider2).getNamespace();
@@ -75,7 +75,7 @@ public class DelegateProviderMapTest {
 
     @Test
     public void getProvider1() {
-        assertThat(new DelegateProviderMap(provider1, provider2).get(PROVIDER_1)).isSameAs(provider1Map);
+        assertThat(new LazyModelMap(provider1, provider2).get(PROVIDER_1)).isSameAs(provider1Map);
 
         verify(provider1).getNamespace();
         verify(provider1).getVariables();
@@ -84,7 +84,7 @@ public class DelegateProviderMapTest {
 
     @Test
     public void getProvider2() {
-        assertThat(new DelegateProviderMap(provider1, provider2).get(PROVIDER_2)).isSameAs(provider2Map);
+        assertThat(new LazyModelMap(provider1, provider2).get(PROVIDER_2)).isSameAs(provider2Map);
 
         verify(provider1).getNamespace();
         verify(provider2).getNamespace();
@@ -93,19 +93,19 @@ public class DelegateProviderMapTest {
 
     @Test
     public void isEmpty() {
-        assertThat(new DelegateProviderMap().isEmpty()).isEqualTo(true);
+        assertThat(new LazyModelMap().isEmpty()).isEqualTo(true);
     }
 
     @Test
     public void isNotEmpty() {
-        assertThat(new DelegateProviderMap(provider1).isEmpty()).isEqualTo(false);
+        assertThat(new LazyModelMap(provider1).isEmpty()).isEqualTo(false);
 
         verify(provider1).getNamespace();
     }
 
     @Test
     public void lazyLoadGet() {
-        Map<String, Object> map = new DelegateProviderMap(provider1, provider2);
+        Map<String, Object> map = new LazyModelMap(provider1, provider2);
         assertThat(map.get(PROVIDER_2_KEY)).isEqualTo(PROVIDER_2_VALUE);
         assertThat(map.get(PROVIDER_2_KEY)).isEqualTo(PROVIDER_2_VALUE);
         assertThat(map.get(PROVIDER_1_KEY)).isEqualTo(PROVIDER_1_VALUE);
@@ -119,7 +119,7 @@ public class DelegateProviderMapTest {
 
     @Test
     public void put() {
-        Map<String, Object> map = new DelegateProviderMap(provider1, provider2);
+        Map<String, Object> map = new LazyModelMap(provider1, provider2);
         map.put("test_key", "test_value");
 
         assertThat(map.get(PROVIDER_2_KEY)).isEqualTo(PROVIDER_2_VALUE);

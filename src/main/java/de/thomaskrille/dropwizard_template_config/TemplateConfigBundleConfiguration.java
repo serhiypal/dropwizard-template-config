@@ -3,6 +3,7 @@ package de.thomaskrille.dropwizard_template_config;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -16,6 +17,7 @@ public class TemplateConfigBundleConfiguration {
     private String fileIncludePath;
     private String outputPath;
     private Set<TemplateConfigVariablesProvider> customProviders = new LinkedHashSet<>();
+    private DataModelFactory factory = () -> new LazyModelMap(customProviders().toArray(new TemplateConfigVariablesProvider[0]));
 
     TemplateConfigBundleConfiguration(TemplateConfigVariablesProvider sys, TemplateConfigVariablesProvider env) {
         customProviders.add(sys);
@@ -24,6 +26,24 @@ public class TemplateConfigBundleConfiguration {
 
     public TemplateConfigBundleConfiguration() {
         this(Providers.fromSystemProperties(), Providers.fromEnvironmentProperties());
+    }
+
+    /**
+     * Factory to be used to create data model for freemarker engine to render template
+     * @return data model factory instance
+     */
+    public DataModelFactory dataModelFactory() {
+        return this.factory;
+    }
+
+    /**
+     * Sets up model factory to be used by freemarker engine to render a template. Overrides default one
+     * @param factory to set up
+     * @return this configuration
+     */
+    public TemplateConfigBundleConfiguration dataModelFactory(DataModelFactory factory) {
+        this.factory = Objects.requireNonNull(factory);
+        return this;
     }
 
     /**

@@ -7,23 +7,60 @@ import java.util.Properties;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * Utility class with creating methods for commonly used {@link TemplateConfigVariablesProvider}
+ */
 public class Providers {
+
+    /**
+     * Namespace for environment variables
+     */
+    public static final String ENV_NAMESPACE = "env";
+
+    /**
+     * Namespace for system variables
+     */
+    public static final String SYS_NAMESPACE = "sys";
 
     private Providers() {}
 
+    /**
+     * Creates {@link TemplateConfigVariablesProvider} with map of system properties
+     * @return provider with system properties
+     */
     public static TemplateConfigVariablesProvider fromSystemProperties() {
-        return new MapVariablesProvider("sys", System.getProperties()
-                                                     .stringPropertyNames()
-                                                     .stream()
-                                                     .collect(Collectors.toMap(Function.identity(), System::getProperty)));
+        return fromProperties(SYS_NAMESPACE, System.getProperties());
     }
 
+    /**
+     * Creates {@link TemplateConfigVariablesProvider} with map of environment properties
+     * @return provider with environment properties
+     */
     public static TemplateConfigVariablesProvider fromEnvironmentProperties() {
-        return new MapVariablesProvider("env", System.getenv());
+        return new MapVariablesProvider(ENV_NAMESPACE, System.getenv());
     }
 
+    /**
+     * Wraps a map into a {@link TemplateConfigVariablesProvider} with given namespace
+     * @param namespace to use for provider
+     * @param variables to wrap into provider
+     * @return provider with given namespace and map
+     */
     public static TemplateConfigVariablesProvider fromMap(String namespace, Map<String, String> variables) {
-        return new MapVariablesProvider(namespace, variables);
+        return new MapVariablesProvider(namespace, Objects.requireNonNull(variables));
+    }
+
+    /**
+     * Converts properties into a {@link TemplateConfigVariablesProvider} with given namespace
+     * @param namespace to use for provider
+     * @param properties to wrap into provider
+     * @return provider with given namespace and map
+     */
+    public static TemplateConfigVariablesProvider fromProperties(String namespace, Properties properties) {
+        return fromMap(namespace, Objects.requireNonNull(properties)
+                                         .stringPropertyNames()
+                                         .stream()
+                                         .collect(Collectors.toMap(Function.identity(), System::getProperty)));
     }
 
     /**
