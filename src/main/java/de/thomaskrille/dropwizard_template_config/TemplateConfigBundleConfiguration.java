@@ -1,10 +1,10 @@
 package de.thomaskrille.dropwizard_template_config;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Optional;
-
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashSet;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -12,11 +12,39 @@ import java.util.Set;
  */
 public class TemplateConfigBundleConfiguration {
 
-    private Charset charset = Charsets.UTF_8;
+    private Charset charset = StandardCharsets.UTF_8;
     private String resourceIncludePath;
     private String fileIncludePath;
     private String outputPath;
     private Set<TemplateConfigVariablesProvider> customProviders = new LinkedHashSet<>();
+    private DataModelFactory factory = () -> new LazyModelMap(customProviders().toArray(new TemplateConfigVariablesProvider[0]));
+
+    TemplateConfigBundleConfiguration(TemplateConfigVariablesProvider sys, TemplateConfigVariablesProvider env) {
+        customProviders.add(sys);
+        customProviders.add(env);
+    }
+
+    public TemplateConfigBundleConfiguration() {
+        this(Providers.fromSystemProperties(), Providers.fromEnvironmentProperties());
+    }
+
+    /**
+     * Factory to be used to create data model for freemarker engine to render template
+     * @return data model factory instance
+     */
+    public DataModelFactory dataModelFactory() {
+        return this.factory;
+    }
+
+    /**
+     * Sets up model factory to be used by freemarker engine to render a template. Overrides default one
+     * @param factory to set up
+     * @return this configuration
+     */
+    public TemplateConfigBundleConfiguration dataModelFactory(DataModelFactory factory) {
+        this.factory = Objects.requireNonNull(factory);
+        return this;
+    }
 
     /**
      * Get the configured charset (Default: UTF-8)
@@ -37,33 +65,23 @@ public class TemplateConfigBundleConfiguration {
 
     /**
      * Get the configured resource include path (Default: None)
-     *
-     * @deprecated Replaced by {@link #resourceIncludePath}.
-     */
-    @Deprecated
-    public Optional<String> includePath() {
-        return Optional.fromNullable(resourceIncludePath);
-    }
-
-    /**
-     * Get the configured resource include path (Default: None)
      */
     public Optional<String> resourceIncludePath() {
-        return Optional.fromNullable(resourceIncludePath);
+        return Optional.ofNullable(resourceIncludePath);
     }
 
     /**
      * Get the configured file include path (Default: None)
      */
     public Optional<String> fileIncludePath() {
-        return Optional.fromNullable(fileIncludePath);
+        return Optional.ofNullable(fileIncludePath);
     }
 
     /**
      * Get the configured output path for the processed config (Default: None)
      */
     public Optional<String> outputPath() {
-        return Optional.fromNullable(outputPath);
+        return Optional.ofNullable(outputPath);
     }
 
     /**
@@ -71,20 +89,6 @@ public class TemplateConfigBundleConfiguration {
      */
     public Set<TemplateConfigVariablesProvider> customProviders() {
         return customProviders;
-    }
-
-    /**
-     * Set the path to include config snippets from
-     *
-     * <p>Must not be {@code null}. By default there's no value set.
-     *
-     * @deprecated Replaced by {@link #resourceIncludePath(String)}.
-     */
-    @Deprecated
-    public TemplateConfigBundleConfiguration includePath(String includePath) {
-        resourceIncludePath = includePath;
-        fileIncludePath = null;
-        return this;
     }
 
     /**

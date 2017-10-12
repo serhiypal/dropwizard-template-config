@@ -7,14 +7,12 @@ import static org.hamcrest.CoreMatchers.containsString
 
 class AdvancedInterpolationSpec extends Specification {
 
-    def TestEnvironmentProvider environmentProvider = new TestEnvironmentProvider()
-    def TestSystemPropertiesProvider systemPropertiesProvider = new TestSystemPropertiesProvider()
+    def TestCustomProvider environmentProvider = TestCustomProvider.forEnv()
+    def TestCustomProvider systemPropertiesProvider = TestCustomProvider.forSys()
 
     def TemplateConfigurationSourceProvider templateConfigurationSourceProvider =
             new TemplateConfigurationSourceProvider(new TestConfigSourceProvider(),
-                    environmentProvider,
-                    systemPropertiesProvider,
-                    new TemplateConfigBundleConfiguration())
+                    new TemplateConfigBundleConfiguration(systemPropertiesProvider, environmentProvider))
 
     def 'replacing an environment variable inline works'() {
         given:
@@ -24,10 +22,10 @@ class AdvancedInterpolationSpec extends Specification {
                           password: ${DB_PASSWORD}
                           url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/my-app-db'''
 
-        environmentProvider.put('DB_USER', 'user')
-        environmentProvider.put('DB_PASSWORD', 'password')
-        environmentProvider.put('DB_HOST', 'db-host')
-        environmentProvider.put('DB_PORT', '12345')
+        environmentProvider.putVariable('DB_USER', 'user')
+        environmentProvider.putVariable('DB_PASSWORD', 'password')
+        environmentProvider.putVariable('DB_HOST', 'db-host')
+        environmentProvider.putVariable('DB_PORT', '12345')
 
         when:
         InputStream parsedConfig = templateConfigurationSourceProvider.open(config)
@@ -51,8 +49,8 @@ class AdvancedInterpolationSpec extends Specification {
                     port: 8080
                 '''
 
-        environmentProvider.put('SERVER_TYPE_LINE', 'type: simple')
-        environmentProvider.put('SERVER_CONNECTOR_TYPE_LINE', 'type: http')
+        environmentProvider.putVariable('SERVER_TYPE_LINE', 'type: simple')
+        environmentProvider.putVariable('SERVER_CONNECTOR_TYPE_LINE', 'type: http')
 
         when:
         InputStream parsedConfig = templateConfigurationSourceProvider.open(config)
@@ -71,8 +69,8 @@ class AdvancedInterpolationSpec extends Specification {
                             type: http
                             port: ${port}'''
 
-        environmentProvider.put('port', '8080')
-        systemPropertiesProvider.put('port', '8081')
+        environmentProvider.putVariable('port', '8080')
+        systemPropertiesProvider.putVariable('port', '8081')
 
         when:
         def parsedConfig = templateConfigurationSourceProvider.open(config)

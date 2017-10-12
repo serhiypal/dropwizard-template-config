@@ -7,19 +7,17 @@ import static org.hamcrest.CoreMatchers.containsString
 
 class CustomProvidersSpec extends Specification {
 
-    def TestEnvironmentProvider environmentProvider = new TestEnvironmentProvider()
-    def TestSystemPropertiesProvider systemPropertiesProvider = new TestSystemPropertiesProvider()
+    def TestCustomProvider environmentProvider = TestCustomProvider.forEnv()
+    def TestCustomProvider systemPropertiesProvider = TestCustomProvider.forSys()
     def TestCustomProvider customProviderA = new TestCustomProvider("providerA")
     def TestCustomProvider customProviderB = new TestCustomProvider("providerB")
-    def TemplateConfigBundleConfiguration templateConfigBundleConfiguration = new TemplateConfigBundleConfiguration()
+    def TemplateConfigBundleConfiguration templateConfigBundleConfiguration =
+            new TemplateConfigBundleConfiguration(systemPropertiesProvider, environmentProvider)
             .addCustomProvider(customProviderA)
             .addCustomProvider(customProviderB)
 
     def TemplateConfigurationSourceProvider templateConfigurationSourceProvider =
-            new TemplateConfigurationSourceProvider(new TestConfigSourceProvider(),
-                    environmentProvider,
-                    systemPropertiesProvider,
-                    templateConfigBundleConfiguration)
+            new TemplateConfigurationSourceProvider(new TestConfigSourceProvider(), templateConfigBundleConfiguration)
 
     def 'replacing custom variables inline works'() {
         given:
@@ -28,10 +26,10 @@ class CustomProvidersSpec extends Specification {
                           user: ${DB_USER}
                           password: ${DB_PASSWORD}
                           url: jdbc:postgresql://${providerA.DB_HOST}:${providerB.DB_PORT}/my-app-db'''
-        customProviderA.put('DB_USER', 'user')
-        customProviderB.put('DB_PASSWORD', 'password')
-        customProviderA.put('DB_HOST', 'db-host')
-        customProviderB.put('DB_PORT', '12345')
+        customProviderA.putVariable('DB_USER', 'user')
+        customProviderB.putVariable('DB_PASSWORD', 'password')
+        customProviderA.putVariable('DB_HOST', 'db-host')
+        customProviderB.putVariable('DB_PORT', '12345')
 
         when:
         InputStream parsedConfig = templateConfigurationSourceProvider.open(config)
@@ -53,11 +51,11 @@ class CustomProvidersSpec extends Specification {
                           user: ${DB_USER}
                           password: ${DB_PASSWORD}
                           url: jdbc:postgresql://${providerA.DB_HOST}:${providerB.DB_PORT}/my-app-db'''
-        environmentProvider.put('DB_USER', 'bad_user')
-        customProviderA.put('DB_USER', 'good_user')
-        customProviderB.put('DB_PASSWORD', 'password')
-        customProviderA.put('DB_HOST', 'db-host')
-        customProviderB.put('DB_PORT', '12345')
+        environmentProvider.putVariable('DB_USER', 'bad_user')
+        customProviderA.putVariable('DB_USER', 'good_user')
+        customProviderB.putVariable('DB_PASSWORD', 'password')
+        customProviderA.putVariable('DB_HOST', 'db-host')
+        customProviderB.putVariable('DB_PORT', '12345')
 
         when:
         InputStream parsedConfig = templateConfigurationSourceProvider.open(config)
@@ -78,7 +76,7 @@ class CustomProvidersSpec extends Specification {
                           <#list my_keys?keys as my_key>
                           ${my_key}: ${my_keys[my_key]}
                           </#list>'''
-        customProviderA.put('my_keys', '{ "key1": "secret1", "key2": "secret2" } ')
+        customProviderA.putVariable('my_keys', '{ "key1": "secret1", "key2": "secret2" } ')
 
         when:
         InputStream parsedConfig = templateConfigurationSourceProvider.open(config)

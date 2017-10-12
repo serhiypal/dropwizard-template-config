@@ -8,13 +8,11 @@ import static org.hamcrest.CoreMatchers.not
 
 class AdditionalFreemarkerFeaturesSpec extends Specification {
 
-    def TestEnvironmentProvider environmentProvider = new TestEnvironmentProvider()
+    def TestCustomProvider environmentProvider = TestCustomProvider.forEnv()
 
     def TemplateConfigurationSourceProvider templateConfigurationSourceProvider =
             new TemplateConfigurationSourceProvider(new TestConfigSourceProvider(),
-                    environmentProvider,
-                    new DefaultSystemPropertiesProvider(),
-                    new TemplateConfigBundleConfiguration())
+                    new TemplateConfigBundleConfiguration(Providers.fromSystemProperties(), environmentProvider))
 
     def 'conditionally enable https - on'() {
         given:
@@ -31,9 +29,9 @@ class AdditionalFreemarkerFeaturesSpec extends Specification {
                 </#if>
                 '''
 
-        environmentProvider.put('ENABLE_SSL', 'true')
-        environmentProvider.put('SSL_KEYSTORE_PATH', 'example.keystore')
-        environmentProvider.put('SSL_KEYSTORE_PASS', 'secret')
+        environmentProvider.putVariable('ENABLE_SSL', 'true')
+        environmentProvider.putVariable('SSL_KEYSTORE_PATH', 'example.keystore')
+        environmentProvider.putVariable('SSL_KEYSTORE_PASS', 'secret')
 
         when:
         def parsedConfig = templateConfigurationSourceProvider.open(config)
@@ -63,7 +61,7 @@ class AdditionalFreemarkerFeaturesSpec extends Specification {
                 </#if>
                 '''
 
-        environmentProvider.put('ENABLE_SSL', 'false')
+        environmentProvider.putVariable('ENABLE_SSL', 'false')
 
         when:
         def parsedConfig = templateConfigurationSourceProvider.open(config)
@@ -122,7 +120,7 @@ class AdditionalFreemarkerFeaturesSpec extends Specification {
                 </#if>
                 '''
 
-        environmentProvider.put('PROFILE', 'production')
+        environmentProvider.putVariable('PROFILE', 'production')
 
         when:
         def parsedConfig = templateConfigurationSourceProvider.open(config)
@@ -160,7 +158,7 @@ class AdditionalFreemarkerFeaturesSpec extends Specification {
                 </#if>
                 '''
 
-        environmentProvider.put('PROFILE', 'development')
+        environmentProvider.putVariable('PROFILE', 'development')
 
         when:
         def parsedConfig = templateConfigurationSourceProvider.open(config)

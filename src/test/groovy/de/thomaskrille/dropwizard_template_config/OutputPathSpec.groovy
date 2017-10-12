@@ -9,16 +9,15 @@ import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.equalTo
 
 class OutputPathSpec extends Specification {
-    def TestEnvironmentProvider environmentProvider = new TestEnvironmentProvider()
+    def TestCustomProvider environmentProvider = TestCustomProvider.forEnv()
 
     def outputPath = System.getProperty('java.io.tmpdir') + '/outputPathSpec.yml'
 
     def TemplateConfigurationSourceProvider provider = new TemplateConfigurationSourceProvider(
             new TestConfigSourceProvider(),
-            environmentProvider,
-            new DefaultSystemPropertiesProvider(),
-            new TemplateConfigBundleConfiguration()
-                    .outputPath(outputPath)
+            new TemplateConfigBundleConfiguration(Providers.fromSystemProperties(), environmentProvider)
+                    .outputPath(outputPath),
+
     )
 
     def 'rendered output is written to configured outputPath'() {
