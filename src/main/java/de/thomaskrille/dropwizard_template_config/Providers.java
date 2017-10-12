@@ -62,7 +62,7 @@ public class Providers {
         return fromMap(namespace, Objects.requireNonNull(properties)
                                          .stringPropertyNames()
                                          .stream()
-                                         .collect(Collectors.toMap(Function.identity(), System::getProperty)));
+                                         .collect(Collectors.toMap(Function.identity(), properties::getProperty)));
     }
 
     /**
