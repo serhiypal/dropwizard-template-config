@@ -41,7 +41,7 @@ class IncludeSpec extends Specification {
 
         expect:
         def parsedConfig = provider.open(config)
-        def parsedConfigAsString = IOUtils.toString(parsedConfig)
+        def parsedConfigAsString = IOUtils.toString(parsedConfig).replace("\r", "");
         parsedConfigAsString == '''
                 server:
                   type: simple
@@ -76,7 +76,7 @@ class IncludeSpec extends Specification {
 
         expect:
         def parsedConfig = provider.open(config)
-        def parsedConfigAsString = IOUtils.toString(parsedConfig)
+        def parsedConfigAsString = IOUtils.toString(parsedConfig).replace("\r", "")
         parsedConfigAsString == '''
                 database:
                   driverClass: org.postgresql.Driver
@@ -104,7 +104,7 @@ class IncludeSpec extends Specification {
         def parsedConfig = provider.open(config)
 
         then:
-        def parsedConfigAsString = IOUtils.toString(parsedConfig)
+        def parsedConfigAsString = IOUtils.toString(parsedConfig).replace("\r", "")
         parsedConfigAsString == '''
                 database:
                   driverClass: org.postgresql.Driver
