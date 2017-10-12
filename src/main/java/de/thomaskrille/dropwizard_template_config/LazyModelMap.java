@@ -27,13 +27,13 @@ class LazyModelMap extends ForwardingMap<String, Object> {
 
     /**
      * Providers to use internally for resolving values.
-     * @param providers
+     * @param providers array of providers to collect
      */
     LazyModelMap(TemplateConfigVariablesProvider... providers) {
         this.providers = Stream.of(Objects.requireNonNull(providers))
                                .collect(Collectors.toMap(TemplateConfigVariablesProvider::getNamespace,
                                                          Function.identity(),
-                                                         (l, r) -> l,
+                                                         Providers::mergeProviders,
                                                          LinkedHashMap::new));
     }
 

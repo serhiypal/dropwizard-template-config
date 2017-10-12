@@ -3,6 +3,7 @@ package de.thomaskrille.dropwizard_template_config;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
@@ -79,6 +80,26 @@ public class Providers {
         } catch (IOException e) {
             throw new IllegalArgumentException("Could not read properties from URL: " + propertiesURL, e);
         }
+    }
+
+    /**
+     * Merges to providers into a new provider with combined variables. Right providers may override variables of left
+     * provider
+     * @param left variables provider
+     * @param right variables provider
+     * @return new provider with merged variables
+     */
+    public static TemplateConfigVariablesProvider mergeProviders(TemplateConfigVariablesProvider left,
+                                                                  TemplateConfigVariablesProvider right) {
+        Map<String, String> mergedVariables = new HashMap<>();
+        if (left.getVariables() != null) {
+            mergedVariables.putAll(left.getVariables());
+        }
+        if (right.getVariables() != null) {
+            mergedVariables.putAll(right.getVariables());
+        }
+
+        return fromMap(left.getNamespace(), mergedVariables);
     }
 
     /**
